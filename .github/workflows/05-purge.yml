@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write   # needed for force push
+      contents: write
 
     steps:
       - name: Checkout repository with full history
@@ -32,10 +32,18 @@ jobs:
       - name: Install git-filter-repo
         run: pip install git-filter-repo
 
+      - name: Store origin URL (git-filter-repo will delete it)
+        run: |
+          ORIGIN_URL=$(git remote get-url origin)
+          echo "ORIGIN_URL=$ORIGIN_URL" >> $GITHUB_ENV
+
       - name: Purge downloads/ folder from all commits
         run: |
-          # Remove the folder from every commit in the active branch
           git filter-repo --path downloads --invert-paths --force
+
+      - name: Restore origin remote
+        run: |
+          git remote add origin "$ORIGIN_URL"
 
       - name: Recreate downloads folder with README
         run: |

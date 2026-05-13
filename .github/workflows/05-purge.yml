@@ -70,6 +70,8 @@ jobs:
       - name: Force push the rewritten history
         run: |
           BRANCH="${GITHUB_REF_NAME}"
+          echo "Fetching latest remote ref for ${BRANCH}"
+          git fetch origin "${BRANCH}" --quiet
           echo "Force pushing rewritten history to ${BRANCH}"
           git push origin HEAD:"${BRANCH}" --force-with-lease
         env:

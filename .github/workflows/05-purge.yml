@@ -1,0 +1,68 @@
+---
+name: 🗑️ Purge downloads/ folder from ENTIRE history
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "YES" to confirm permanent history rewrite'
+        required: true
+        default: 'NO'
+
+jobs:
+  purge-history:
+    if: ${{ github.event.inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write   # needed for force push
+
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Git user
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Install git-filter-repo
+        run: pip install git-filter-repo
+
+      - name: Purge downloads/ folder from all commits
+        run: |
+          # Remove the folder from every commit in the active branch
+          git filter-repo --path downloads --invert-paths --force
+
+      - name: Recreate downloads folder with README
+        run: |
+          mkdir -p downloads
+          cat > downloads/README.md << 'EOF'
+          # Downloads
+          
+          ---
+          
+          ## NO FILE DOWNLOADED YET!
+          
+          Use the download workflows to add files here.
+          
+          ---
+          
+          *This tool created by [avasam.ir](https://avasam.ir)*
+          EOF
+
+      - name: Commit the new README
+        run: |
+          git add downloads/README.md
+          git commit -m "[AVASAM] Recreate downloads/ folder after history purge [skip ci]"
+
+      - name: Force push the rewritten history
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          echo "Force pushing rewritten history to ${BRANCH}"
+          git push origin HEAD:"${BRANCH}" --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

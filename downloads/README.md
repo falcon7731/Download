@@ -1,10 +1,6 @@
-# Downloads
+# Downloaded list :
 
----
-
-## NO FILE DOWNLOADED YET!
-
-Use the download workflows to add files here.
+- [x86_64-pc-windows-gnu](./x86_64-pc-windows-gnu)
 
 ---
 
